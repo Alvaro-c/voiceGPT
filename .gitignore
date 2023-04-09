@@ -130,3 +130,4 @@ dist
 .pnp.*
 
 python/
+python/main.py

@@ -4,8 +4,6 @@ import json
 import requests
 import speech_recognition as sr
 
-OPENAI_API_KEY = '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'
-
 
 def recognize_audio():
     pass
