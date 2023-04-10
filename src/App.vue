@@ -1,15 +1,18 @@
 <template>
-  <div class="app main" @click="toggleMic">
-    <div class="mic-status">Está el micro escuchando? {{ isRecording ? 'Si' : 'No' }}</div>
+  <div class="app main">
+    <div class="mic-status">Está el micro grabando? {{ isRecording ? 'Si' : 'No' }}</div>
+    <button class="center m-top-5 record-button" @click="toggleMic">RECORD</button>
+    <button class="center m-top-5 record-button" @click="test">TEST</button>
+
     <div>
-      <div class="transcript">{{ transcript }}</div>
+      <div v-if="!isRecording" class="transcript">{{ speechResult }}</div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-const transcript = ref<String>('')
+const speechResult = ref<String>('')
 const isRecording = ref<Boolean>(false)
 const backgoundColor = ref<String>('#281936')
 
@@ -31,38 +34,21 @@ const toggleMic = () => {
 }
 
 sr.onstart = () => {
-  console.log('Grabando')
   isRecording.value = true
   backgoundColor.value = '#0f451f'
 }
 
 sr.onend = () => {
-  console.log('SR Stopped')
   isRecording.value = false
   backgoundColor.value = '#281936'
 }
 
 sr.onresult = (event) => {
-  console.log(event.results)
-
-  for (let i = 0; i < event.results.length; i++) {
-    const result = event.results[i]
-    if (result.isFinal) checkQuestion(result)
-  }
-
-  const t = Array.from(event.results)
-    .map((result) => result[0])
-    .map((result) => result.transcript)
-    .join('')
-
-  transcript.value = t
+  speechResult.value = event.results[event.results.length - 1][0].transcript
 }
 
-const checkQuestion = (result) => {
-  const t = result[0].transcript
-  if (t.includes('final del audio')) {
-    sr.stop()
-  }
+const test = () => {
+  console.log('test')
 }
 </script>
 
@@ -76,8 +62,25 @@ const checkQuestion = (result) => {
 
 .main {
   min-height: 100vh;
-  min-width: 100vh;
   background-color: v-bind(backgoundColor);
+}
+
+.center {
+  display: flex;
+  justify-content: center;
+  margin: auto;
+}
+
+.m-top-5 {
+  margin-top: 5%;
+}
+
+.record-button {
+  width: 140px;
+  height: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .mic-status {
