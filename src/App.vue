@@ -1,21 +1,29 @@
 <template>
-  <div class="app main">
-    <div class="mic-status">Está el micro grabando? {{ isRecording ? 'Si' : 'No' }}</div>
-    <button class="center m-top-5 record-button" @click="toggleMic">RECORD</button>
-    <button class="center m-top-5 record-button" @click="test">TEST</button>
-
+  <div class="app main" @click="toggleMic">
     <div>
-      <div v-if="!isRecording" class="transcript">{{ speechResult }}</div>
+      <div class="title">PULSA EN LA PANTALLA PARA PREGUNTAR</div>
+
+      <div>
+        <div v-if="!isRecording" class="transcript">{{ capitalizeFirstLetter(question) }}</div>
+      </div>
+
+      <div>
+        <div v-if="isAnswerReady" class="transcript">{{ answer }}</div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-const speechResult = ref<String>('')
-const isRecording = ref<Boolean>(false)
-const backgoundColor = ref<String>('#281936')
 
+const question = ref<string>('')
+const answer = ref<string>('')
+const isRecording = ref<boolean>(false)
+const isAnswerReady = ref<boolean>(false)
+const backgoundColor = ref<string>('#281936')
+
+// @ts-ignore
 const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition
 const sr = new Recognition()
 
@@ -30,6 +38,8 @@ const toggleMic = () => {
     sr.stop()
   } else {
     sr.start()
+    question.value = ''
+    answer.value = ''
   }
 }
 
@@ -40,15 +50,82 @@ sr.onstart = () => {
 
 sr.onend = () => {
   isRecording.value = false
+  isAnswerReady.value = false
   backgoundColor.value = '#281936'
+  sendQuestion(question.value)
 }
 
+// @ts-ignore
 sr.onresult = (event) => {
-  speechResult.value = event.results[event.results.length - 1][0].transcript
+  question.value = event.results[event.results.length - 1][0].transcript
 }
 
-const test = () => {
-  console.log('test')
+const url = 'https://api.openai.com/v1/chat/completions'
+
+const headers = {
+  'Content-Type': 'application/json',
+  Authorization: `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`
+}
+
+const sendQuestion = (question: String) => {
+  console.log(question)
+
+  if (question === '') return
+
+  fetch(url, {
+    method: 'POST',
+    body: JSON.stringify({
+      model: 'gpt-3.5-turbo',
+      messages: [{ role: 'user', content: question }],
+      temperature: 0.2
+    }),
+    headers: headers
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      isAnswerReady.value = true
+      answer.value = data.choices[0].message.content
+      speak(answer.value)
+    })
+    .catch((error) => console.error('Error:', error))
+}
+
+const synth = window.speechSynthesis
+
+const speak = (text: string) => {
+  if (synth.speaking) {
+    console.error('speechSynthesis.speaking')
+    return
+  }
+
+  const utterThis = new SpeechSynthesisUtterance(text)
+
+  utterThis.onend = function (event) {
+    console.log('SpeechSynthesisUtterance.onend')
+  }
+
+  utterThis.onerror = function (event) {
+    console.error('SpeechSynthesisUtterance.onerror')
+  }
+
+  const selectedOption = 'Sandy (Spanish (Spain))'
+  const voices = synth.getVoices()
+
+  for (let i = 0; i < voices.length; i++) {
+    if (voices[i].name === selectedOption) {
+      utterThis.voice = voices[i]
+      break
+    }
+  }
+  utterThis.pitch = 1.1
+  utterThis.rate = 0.8
+  utterThis.lang = 'es-ES'
+
+  synth.speak(utterThis)
+}
+
+function capitalizeFirstLetter(string: string) {
+  return string.charAt(0).toUpperCase() + string.slice(1)
 }
 </script>
 
@@ -65,29 +142,11 @@ const test = () => {
   background-color: v-bind(backgoundColor);
 }
 
-.center {
+.title {
   display: flex;
   justify-content: center;
-  margin: auto;
-}
-
-.m-top-5 {
-  margin-top: 5%;
-}
-
-.record-button {
-  width: 140px;
-  height: 50px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.mic-status {
+  padding-top: 10%;
   color: white;
-  display: flex;
-  justify-content: center;
-  padding-top: 5%;
 }
 
 .transcript {
