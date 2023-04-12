@@ -44,9 +44,8 @@ onMounted(() => {
 
 const toggleMic = () => {
   if (!isMicPermited.value) {
-    speak('x')
-    console.log('flag')
-
+    speak('')
+    console.log('Mic is now allowed')
     isMicPermited.value = true
     toggleMic()
   }
