@@ -23,6 +23,7 @@ interface Message {
   content: string
 }
 
+const isMicPermited = ref<boolean>(false)
 const question = ref<string>('')
 const answer = ref<string>('')
 const isRecording = ref<boolean>(false)
@@ -42,6 +43,11 @@ onMounted(() => {
 })
 
 const toggleMic = () => {
+  if (!isMicPermited.value) {
+    speak('')
+    isMicPermited.value = true
+    toggleMic()
+  }
   if (isRecording.value) {
     sr.stop()
   } else {
