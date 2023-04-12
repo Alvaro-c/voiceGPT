@@ -45,6 +45,7 @@ onMounted(() => {
 const toggleMic = () => {
   if (!isMicPermited.value) {
     speak('')
+    navigator.vibrate(200)
     console.log('Mic is now allowed.')
     isMicPermited.value = true
     toggleMic()
@@ -59,6 +60,7 @@ const toggleMic = () => {
     sr.stop()
   } else {
     sr.start()
+    navigator.vibrate(200)
     question.value = ''
     answer.value = ''
   }
@@ -73,6 +75,7 @@ sr.onend = () => {
   isRecording.value = false
   isAnswerReady.value = false
   backgoundColor.value = '#281936'
+  navigator.vibrate([200, 200, 200])
 
   if (question.value === '') return
 
