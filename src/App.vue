@@ -49,6 +49,12 @@ const toggleMic = () => {
     isMicPermited.value = true
     toggleMic()
   }
+
+  if (synth.speaking) {
+    synth.cancel()
+    return
+  }
+
   if (isRecording.value) {
     sr.stop()
   } else {
