@@ -31,6 +31,7 @@ const isAnswerReady = ref<boolean>(false)
 const backgoundColor = ref<string>('#281936')
 const conversation = ref<Message[]>([])
 const endOfConversation = ref(null)
+const canVibrate = window.navigator.vibrate
 
 // @ts-ignore
 const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition
@@ -45,8 +46,9 @@ onMounted(() => {
 const toggleMic = () => {
   if (!isMicPermited.value) {
     speak('')
-    navigator.vibrate(200)
     console.log('Mic is now allowed.')
+    // @ts-ignore
+    if (canVibrate) navigator.vibrate(200)
     isMicPermited.value = true
     toggleMic()
   }
@@ -75,7 +77,8 @@ sr.onend = () => {
   isRecording.value = false
   isAnswerReady.value = false
   backgoundColor.value = '#281936'
-  navigator.vibrate([200, 200, 200])
+  // @ts-ignore
+  if (canVibrate) navigator.vibrate([200, 200, 200])
 
   if (question.value === '') return
 
