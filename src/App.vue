@@ -46,9 +46,9 @@ onMounted(() => {
 const toggleMic = () => {
   if (!isMicPermited.value) {
     speak('')
-    console.log('Mic is now allowed.')
     // @ts-ignore
     if (canVibrate) navigator.vibrate(200)
+    console.log('Mic and vibration are now allowed.')
     isMicPermited.value = true
     toggleMic()
   }
@@ -62,7 +62,8 @@ const toggleMic = () => {
     sr.stop()
   } else {
     sr.start()
-    navigator.vibrate(200)
+    // @ts-ignore
+    if (canVibrate) navigator.vibrate(200)
     question.value = ''
     answer.value = ''
   }
